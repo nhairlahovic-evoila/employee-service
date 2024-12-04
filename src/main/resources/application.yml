@@ -1,0 +1,6 @@
+elasticsearch:
+  host: "${ELASTICSEARCH_HOST:localhost:9200}"
+  username: "${ELASTICSEARCH_USERNAME:elastic}"
+  password: "${ELASTICSEARCH_PASSWORD:elastic}"
+  ssl:
+    insecure: "${ELASTICSEARCH_SSL_INSECURE:true}"
