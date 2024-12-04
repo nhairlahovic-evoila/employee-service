@@ -1,0 +1,12 @@
+---
+applications:
+  - name: employee-service
+    instances: 1
+    host: product-service
+    path: target/employee-service-0.0.1-SNAPSHOT.jar
+    env:
+      JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 17.+ } }'
+      SPRING_PROFILES_ACTIVE: cloudfoundry
+      SERVICE_OFFERING_NAME: osb-elasticsearch-test
+    services:
+      - elastic-db

@@ -1,6 +1,9 @@
 package dev.nhairlahovic.employeeservice.config;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.ssl.SSLContexts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -9,21 +12,18 @@ import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfigurat
 
 import javax.net.ssl.SSLContext;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 
+@Slf4j
 @Configuration
 public class ElasticsearchConfig extends ElasticsearchConfiguration {
 
-    @Value("${elasticsearch.host}")
-    private String elasticsearchHost;
-
-    @Value("${elasticsearch.username}")
-    private String elasticsearchUsername;
-
-    @Value("${elasticsearch.password}")
-    private String elasticsearchPassword;
+    @Value("${service-offering.name}")
+    private String serviceOfferingName;
 
     @Value("${elasticsearch.ssl.enabled}")
     private Boolean sslEnabled ;
