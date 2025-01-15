@@ -3,4 +3,5 @@ elasticsearch:
   username: "${ELASTICSEARCH_USERNAME:elastic}"
   password: "${ELASTICSEARCH_PASSWORD:elastic}"
   ssl:
-    insecure: "${ELASTICSEARCH_SSL_INSECURE:true}"
+    enabled: "${ELASTICSEARCH_SSL_ENABLED:true}"
+    trustAllCertificates: "${ELASTICSEARCH_SSL_TRUST_ALL:true}"

@@ -25,14 +25,22 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
     @Value("${elasticsearch.password}")
     private String elasticsearchPassword;
 
-    @Value("${elasticsearch.ssl.insecure}")
-    private Boolean sslInsecure ;
+    @Value("${elasticsearch.ssl.enabled}")
+    private Boolean sslEnabled ;
+
+    @Value("${elasticsearch.ssl.trustAllCertificates}")
+    private Boolean trustAllCertificates ;
 
     @Override
     public ClientConfiguration clientConfiguration() {
-        return ClientConfiguration.builder()
-                .connectedTo(elasticsearchHost)
-                .usingSsl(sslInsecure ? getInsecureSSLContext() : getSecureSSLContext())
+        ClientConfiguration.MaybeSecureClientConfigurationBuilder configBuilder = ClientConfiguration.builder()
+                .connectedTo(elasticsearchHost);
+
+        if (sslEnabled) {
+            configBuilder.usingSsl(trustAllCertificates ? getTrustAllSSLContext() : getSecureSSLContext());
+        }
+
+        return configBuilder
                 .withBasicAuth(elasticsearchUsername, elasticsearchPassword)
                 .withSocketTimeout(30000)
                 .build();
@@ -40,7 +48,7 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
 
     // Creates an SSLContext that trusts all certificates, useful for development or testing (not secure for production).
     @SneakyThrows
-    private SSLContext getInsecureSSLContext() {
+    private SSLContext getTrustAllSSLContext() {
         return SSLContexts.custom()
                 .loadTrustMaterial((chain, authType) -> true) // Trust all certificates
                 .build();
