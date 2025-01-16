@@ -33,17 +33,49 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
 
     @Override
     public ClientConfiguration clientConfiguration() {
-        ClientConfiguration.MaybeSecureClientConfigurationBuilder configBuilder = ClientConfiguration.builder()
-                .connectedTo(elasticsearchHost);
+        String vcapServices = System.getenv("VCAP_SERVICES");
 
-        if (sslEnabled) {
-            configBuilder.usingSsl(trustAllCertificates ? getTrustAllSSLContext() : getSecureSSLContext());
+        if (vcapServices == null || vcapServices.isEmpty()) {
+            log.info("VCAP_SERVICES not found");
+            throw new RuntimeException("VCAP_SERVICES not found");
         }
 
-        return configBuilder
-                .withBasicAuth(elasticsearchUsername, elasticsearchPassword)
-                .withSocketTimeout(30000)
-                .build();
+        try {
+            log.info("VCAP_SERVICES found: {}", vcapServices);
+
+            // Parse the VCAP_SERVICES environment variable to extract the credentials
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode root = objectMapper.readTree(vcapServices);
+            JsonNode credentials = root.path(serviceOfferingName).get(0).path("credentials");
+
+            String url = credentials.get("uri").asText();
+            String hostAndPort = extractHostAndPortFromUri(url);
+            String username = credentials.get("username").asText();
+            String password = credentials.get("password").asText();
+
+            ClientConfiguration.MaybeSecureClientConfigurationBuilder configBuilder = ClientConfiguration.builder()
+                    .connectedTo(hostAndPort);
+
+            if (sslEnabled) {
+                configBuilder.usingSsl(trustAllCertificates ? getTrustAllSSLContext() : getSecureSSLContext());
+            }
+
+            return configBuilder
+                    .withBasicAuth(username, password)
+                    .withSocketTimeout(30000)
+                    .build();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to parse VCAP_SERVICES", e);
+        }
+    }
+
+    public static String extractHostAndPortFromUri(String uriString) {
+        try {
+            URI uri = new URI(uriString);
+            return uri.getHost() + ":" + uri.getPort();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     // Creates an SSLContext that trusts all certificates, useful for development or testing (not secure for production).
